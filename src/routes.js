@@ -1,16 +1,16 @@
 import React from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 
 import Home from "./views/home";
 import Cadastro from "./views/produtos/cadastro";
+import Consulta from "./views/produtos/consulta";
 
 export default function Routes() {
   return (
-    <BrowserRouter>
-      <Switch>
-        <Route exact path="/" component={Home} />
-        <Route path="/cadastro" component={Cadastro} />
-      </Switch>
-    </BrowserRouter>
+    <Switch>
+      <Route exact path="/" component={Home} />
+      <Route exact path="/cadastro/:sku?" component={Cadastro} />
+      <Route path="/consulta" component={Consulta} />
+    </Switch>
   );
 }

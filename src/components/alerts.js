@@ -2,11 +2,11 @@ import React from "react";
 
 const Alert = (props) => {
   return (
-    <div class="alert alert-dismissible alert-success">
+    <div className={`alert alert-dismissible ${props.cor}`}>
       <button type="button" class="close" data-dismiss="alert">
         &times;
       </button>
-      <strong>Parabens!</strong> {props.mensagem}
+      <strong>{props.msg}!</strong> {props.mensagem}
     </div>
   );
 };

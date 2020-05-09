@@ -1,7 +1,52 @@
 const Produtos = "_Produtos";
 
+export function ErroValidacao(errors) {
+  this.errors = errors;
+}
+
 export default class ProdutoService {
+  validar = (produto) => {
+    const errors = [];
+
+    if (!produto.nome) {
+      errors.push("O campo Nome é obrigatório");
+    }
+    if (!produto.sku) {
+      errors.push("O campo SKU é obrigatório");
+    }
+    if (!produto.preco || produto.preco <= 0) {
+      errors.push("O campo Preço deve ter um valor maior que zero(0).");
+    }
+    if (!produto.fornecedor) {
+      errors.push("O campo Fornecedor é obrigatório");
+    }
+
+    if (errors.length > 0) {
+      throw new ErroValidacao(errors);
+    }
+  };
+
+  obterProdutos = () => {
+    const produtos = localStorage.getItem(Produtos);
+    if (!produtos) {
+      return [];
+    }
+    return JSON.parse(produtos);
+  };
+
+  obterIndex = (sku) => {
+    let index = null;
+    this.obterProdutos().forEach((produto, i) => {
+      if (produto.sku === sku) {
+        index = i;
+      }
+    });
+
+    return index;
+  };
   salvar = (produto) => {
+    this.validar(produto);
+
     let produtos = localStorage.getItem(Produtos);
 
     if (!produtos) {
@@ -10,8 +55,23 @@ export default class ProdutoService {
       produtos = JSON.parse(produtos);
     }
 
-    produtos.push(produto);
+    const index = this.obterIndex(produto.sku);
+    if (index) {
+      produtos[index] = produto;
+    } else {
+      produtos.push(produto);
+    }
 
     localStorage.setItem(Produtos, JSON.stringify(produtos));
   };
+
+  deletar(sku) {
+    const index = this.obterIndex(sku);
+    if (index !== null) {
+      const produtos = this.obterProdutos();
+      produtos.splice(index, 1);
+      localStorage.setItem(Produtos, JSON.stringify(produtos));
+      return produtos;
+    }
+  }
 }

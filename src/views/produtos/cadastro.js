@@ -2,6 +2,7 @@ import React, { Component } from "react";
 
 import produtoService from "../../app/produtoService";
 import Alerta from "../../components/alerts";
+import { withRouter } from "react-router-dom";
 
 const estadoIncial = {
   nome: "",
@@ -10,9 +11,11 @@ const estadoIncial = {
   preco: 0,
   fornecedor: "",
   sucesso: false,
+  errors: [],
+  atualizando: false,
 };
 
-export default class CadastroProduto extends Component {
+class CadastroProduto extends Component {
   state = estadoIncial;
 
   constructor() {
@@ -36,21 +39,54 @@ export default class CadastroProduto extends Component {
       preco: this.state.preco,
       fornecedor: this.state.fornecedor,
     };
-    this.service.salvar(produto);
-    this.limpaCampos();
-    this.setState({ sucesso: true });
+
+    try {
+      this.service.salvar(produto);
+      this.limpaCampos();
+      this.setState({ sucesso: true });
+    } catch (erro) {
+      const errors = erro.errors;
+      this.setState({ errors });
+    }
   };
 
   limpaCampos = () => this.setState(estadoIncial);
 
+  componentDidMount() {
+    const sku = this.props.match.params.sku;
+
+    if (sku) {
+      const resultado = this.service
+        .obterProdutos()
+        .filter((produto) => produto.sku === sku);
+      if (resultado.length === 1) {
+        const produtoEncontrado = resultado[0];
+        this.setState({ ...produtoEncontrado, atualizando: true });
+      }
+    }
+  }
+
   render() {
     return (
       <div className="card">
-        <div className="card-header">Cadastro de Produtos</div>
+        <div className="card-header">
+          {this.state.atualizando ? "Atualização " : "Cadastro "}
+          de Produtos
+        </div>
         <div className="card-body">
           {this.state.sucesso && (
-            <Alerta mensagem="Cadastro realizado com sucesso!" />
+            <Alerta
+              msg="Parabéns!"
+              cor="alert-success"
+              mensagem="Cadastro realizado com sucesso!"
+            />
           )}
+
+          {this.state.errors.length > 0 &&
+            this.state.errors.map((msg) => {
+              return <Alerta msg="Erro!" cor="alert-danger" mensagem={msg} />;
+            })}
+
           <div className="row">
             <div className="col-md-6">
               <div className="form-group">
@@ -76,6 +112,7 @@ export default class CadastroProduto extends Component {
                 className="form-control"
                 placeholder="Digite SKU"
                 name="sku"
+                disabled={this.state.atualizando}
                 value={this.state.sku}
                 onChange={this.onChange}
               />
@@ -132,7 +169,7 @@ export default class CadastroProduto extends Component {
           <div className="row">
             <div className="col-md-1">
               <button className="btn btn-success" onClick={this.onSubmit}>
-                Salvar
+                {this.state.atualizando ? "Atualizar" : "Salvar"}
               </button>
             </div>
             <div className="col-md-1">
@@ -146,3 +183,5 @@ export default class CadastroProduto extends Component {
     );
   }
 }
+
+export default withRouter(CadastroProduto);
